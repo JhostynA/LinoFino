@@ -138,7 +138,6 @@ CREATE TABLE produccion (
     FOREIGN KEY (idpersona) REFERENCES personas(idpersona)
 );
 
-
 CREATE TABLE pdf_files (
     id INT AUTO_INCREMENT PRIMARY KEY,
     idop INT NOT NULL,
@@ -246,6 +245,7 @@ CREATE TABLE pagos (
     FOREIGN KEY (idpersona) REFERENCES personas(idpersona)
 );
 
+
 DELIMITER $$
 CREATE PROCEDURE listarPagosPorBusqueda(
     IN searchTerm VARCHAR(100)
@@ -271,6 +271,8 @@ BEGIN
         CONCAT(p.apellidos, ' ', p.nombres) LIKE CONCAT('%', searchTerm, '%');
 END $$ 
 DELIMITER ;
+
+
 
 DELIMITER $$
 CREATE PROCEDURE listarPagosPorFecha(
@@ -298,3 +300,4 @@ BEGIN
     ORDER BY pg.fecha ASC;
 END $$
 DELIMITER ;
+

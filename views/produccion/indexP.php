@@ -43,6 +43,12 @@ if (isset($_GET['action'])) {
         case 'updateOperations':
             $actionController->addOperationToDetalle();
             break;
+        case 'updateOrdenProduccion':
+            $actionController->updateOrdenProduccion();
+            break;
+        case 'updateDetalleProduccion':
+            $actionController->updateDetalleProduccion();
+            break;
         default:
             echo "Acción no válida.";
             break;

@@ -1,78 +1,78 @@
     <?php require_once '../../contenido.php'; ?>
 
     <body>
-        <div class="container mt-5">
-            <!-- Título principal -->
-            <div class="text-center mb-4">
-                <h2 class="display-4">Historial de Pagos</h2>
-            </div>
+    <div class="container-fluid mt-4">
+        <!-- Título principal -->
+        <div class="text-center mb-4">
+            <h2 class="display-4">Historial de Pagos</h2>
+        </div>
 
-            <!-- Contenedor de formularios -->
-            <div class="row g-4">
-                <!-- Columna: Formulario de búsqueda por nombre -->
-                <div class="col-md-6">
-                    <div class="card shadow">
-                        <div class="card-body">
-                            <h5>Búsqueda por Trabajador</h5>
-                            <div class="form-group position-relative">
-                                <input
-                                    type="text"
-                                    id="searchBox"
-                                    class="form-control"
-                                    placeholder="Ingrese nombres o apellidos del trabajador" />
-                                <!-- Resultados de búsqueda en vivo -->
-                                <ul id="searchResults" class="list-group mt-0 w-100"></ul>
-                            </div>
-                            <button id="searchButton" class="btn btn-primary w-100">
-                                <i class="fas fa-search"></i> Buscar Pagos
-                            </button>
+        <!-- Contenedor de formularios -->
+        <div class="row g-4">
+            <!-- Columna: Formulario de búsqueda por nombre -->
+            <div class="col-lg-6">
+                <div class="card shadow h-100">
+                    <div class="card-body">
+                        <h5 class="mb-3">Búsqueda por Trabajador</h5>
+                        <div class="form-group position-relative mb-3">
+                            <input
+                                type="text"
+                                id="searchBox"
+                                class="form-control"
+                                placeholder="Ingrese nombres o apellidos del trabajador" />
+                            <!-- Resultados de búsqueda en vivo -->
+                            <ul id="searchResults" class="list-group mt-2 w-100"></ul>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Columna: Formulario de búsqueda por rango de fechas -->
-                <div class="col-md-6">
-                    <div class="card shadow">
-                        <div class="card-body">
-                            <h5>Filtrar por Fechas</h5>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <input type="date" id="fechaInicio" class="form-control">
-                                </div>
-                                <div class="col-md-6">
-                                    <input type="date" id="fechaFin" class="form-control">
-                                </div>
-                            </div>
-                            <button id="filterButton" class="btn btn-success w-100">
-                                <i class="fas fa-calendar-alt"></i> Buscar por Fechas
-                            </button>
-                        </div>
+                        <button id="searchButton" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Buscar Pagos
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Tabla de resultados -->
-            <div class="table-responsive mt-4">
-                <table id="paymentsTable" class="table table-hover table-bordered align-middle shadow-sm">
-                    <thead class="table-primary">
-                        <tr>
-                            <th>Trabajador</th>
-                            <th>Orden de Producción</th>
-                            <th>Secuencia</th>
-                            <th>Operación</th>
-                            <th>Modalidad</th>
-                            <th>Fecha del Pago</th>
-                            <th>Monto Pagado</th>
-                        </tr>
-                    </thead>
-                    <tbody id="resultsTable">
-                        <tr>
-                            <td colspan="7" class="text-center text-muted">No hay resultados. Realiza una búsqueda.</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Columna: Formulario de búsqueda por rango de fechas -->
+            <div class="col-lg-6">
+                <div class="card shadow h-100">
+                    <div class="card-body">
+                        <h5 class="mb-3">Filtrar por Fechas</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <input type="date" id="fechaInicio" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="date" id="fechaFin" class="form-control">
+                            </div>
+                        </div>
+                        <button id="filterButton" class="btn btn-success w-100">
+                            <i class="fas fa-calendar-alt"></i> Buscar por Fechas
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Tabla de resultados -->
+        <div class="table-responsive mt-5">
+            <table id="paymentsTable" class="table table-hover table-bordered align-middle shadow-sm w-100">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Trabajador</th>
+                        <th>Orden de Producción</th>
+                        <th>Secuencia</th>
+                        <th>Operación</th>
+                        <th>Modalidad</th>
+                        <th>Fecha del Pago</th>
+                        <th>Monto Pagado</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTable">
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No hay resultados. Realiza una búsqueda.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
         <!-- Agregar dependencias de DataTables -->
         <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
@@ -179,61 +179,64 @@
 
                 // Función para actualizar la tabla con los resultados
                 function updateTable(resultados) {
-                    const tableBody = $('#resultsTable');
-                    tableBody.empty(); // Limpiar la tabla antes de actualizar
+    console.log("Datos recibidos del servidor:", resultados); // Verifica los datos recibidos
 
-                    if ($.fn.DataTable.isDataTable('#paymentsTable')) {
-                        $('#paymentsTable').DataTable().clear().destroy(); // Destruir instancia anterior
-                    }
+    const tableBody = $('#resultsTable');
+    tableBody.empty(); // Limpiar la tabla antes de actualizar
 
-                    if (resultados.length === 0) {
-                        tableBody.append('<tr><td colspan="7" class="text-center text-muted">No se encontraron resultados.</td></tr>');
-                    } else {
-                        resultados.forEach(resultado => {
-                            const trabajador = resultado.trabajador || '-';
-                            const ordenProduccion = resultado.orden_produccion || '-';
-                            const secuencia = resultado.secuencia || '-';
-                            const operacion = resultado.operacion || '-';
-                            const modalidad = resultado.modalidad || '-';
-                            const fechaPago = resultado.fecha_pago || '-';
-                            const montoPagado = resultado.monto_pagado || '-';
+    if ($.fn.DataTable.isDataTable('#paymentsTable')) {
+        $('#paymentsTable').DataTable().clear().destroy(); // Destruir instancia anterior
+    }
 
-                            tableBody.append(`
-                    <tr>
-                        <td>${trabajador}</td>
-                        <td>${ordenProduccion}</td>
-                        <td>${secuencia}</td>
-                        <td>${operacion}</td>
-                        <td>${modalidad}</td>
-                        <td>${fechaPago}</td>
-                        <td>${montoPagado}</td>
-                    </tr>
-                `);
-                        });
-                    }
+    if (resultados.length === 0) {
+        tableBody.append('<tr><td colspan="7" class="text-center text-muted">No se encontraron resultados.</td></tr>');
+    } else {
+        resultados.forEach(resultado => {
+            const trabajador = resultado.trabajador || '-';
+            const ordenProduccion = resultado.orden_produccion || '-';
+            const secuencia = resultado.secuencia || '-';
+            const operacion = resultado.operacion || '-';
+            const modalidad = resultado.modalidad || '-';
+            const fechaPago = resultado.fecha_pago || '-';
+            const montoPagado = resultado.monto_pagado || '-';
 
-                    // Re-activar DataTable con la configuración en español
-                    $('#paymentsTable').DataTable({
-                        language: {
-                            "decimal": "",
-                            "emptyTable": "No hay datos disponibles",
-                            "info": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
-                            "infoEmpty": "Mostrando 0 a 0 de 0 entradas",
-                            "infoFiltered": "(filtrado de _MAX_ entradas totales)",
-                            "lengthMenu": "Mostrar _MENU_ entradas",
-                            "loadingRecords": "Cargando...",
-                            "processing": "Procesando...",
-                            "search": "Buscar:",
-                            "zeroRecords": "No se encontraron resultados",
-                            "paginate": {
-                                "first": "Primero",
-                                "last": "Último",
-                                "next": "Siguiente",
-                                "previous": "Anterior"
-                            }
-                        }
-                    });
-                }
+            tableBody.append(`
+                <tr>
+                    <td>${trabajador}</td>
+                    <td>${ordenProduccion}</td>
+                    <td>${secuencia}</td>
+                    <td>${operacion}</td>
+                    <td>${modalidad}</td>
+                    <td>${fechaPago}</td>
+                    <td>${montoPagado}</td>
+                </tr>
+            `);
+        });
+    }
+
+    // Re-activar DataTable con la configuración en español
+    $('#paymentsTable').DataTable({
+        language: {
+            "decimal": "",
+            "emptyTable": "No hay datos disponibles",
+            "info": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+            "infoEmpty": "Mostrando 0 a 0 de 0 entradas",
+            "infoFiltered": "(filtrado de _MAX_ entradas totales)",
+            "lengthMenu": "Mostrar _MENU_ entradas",
+            "loadingRecords": "Cargando...",
+            "processing": "Procesando...",
+            "search": "Buscar:",
+            "zeroRecords": "No se encontraron resultados",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
+        }
+    });
+}
+
 
                 // Verificar si ambos campos de fecha están completos para habilitar el botón de búsqueda por fechas
                 $('#fechaInicio, #fechaFin').on('change', function() {
@@ -335,10 +338,6 @@
                 });
             });
         </script>
-
-
         <?php require_once '../../footer.php'; ?>
-
     </body>
-
     </html>

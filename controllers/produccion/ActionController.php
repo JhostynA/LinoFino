@@ -122,7 +122,6 @@ class ActionController {
         }
     }
     
-    
    public function createProduccion() {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $iddetop = isset($_POST['iddetop']) ? (int)$_POST['iddetop'] : null;
@@ -179,5 +178,47 @@ class ActionController {
         }
     }
     
+    public function updateOrdenProduccion() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $idop = $_POST['idop'] ?? null;
+            $op = $_POST['op'] ?? null;
+            $estilo = $_POST['estilo'] ?? null;
+            $division = $_POST['division'] ?? null;
+            $color = $_POST['color'] ?? null;
+            $fechainicio = $_POST['fechainicio'] ?? null;
+            $fechafin = $_POST['fechafin'] ?? null;
 
+            if ($idop && $op && $estilo && $division && $color && $fechainicio && $fechafin) {
+                $result = $this->actionModel->updateOrdenProduccion($idop, $op, $estilo, $division, $color, $fechainicio, $fechafin);
+
+                header('Content-Type: application/json');
+                echo json_encode(['success' => $result]);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
+            }
+        }
+    }
+
+    public function updateDetalleProduccion() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $iddetop = $_POST['iddetop'] ?? null;
+            $numSecuencia = $_POST['numSecuencia'] ?? null;
+            $idtalla = $_POST['talla'] ?? null; // Aquí se espera que 'talla' ya sea el ID
+            $cantidad = $_POST['cantidad'] ?? null;
+            $sinicio = $_POST['sinicio'] ?? null;
+            $sfin = $_POST['sfin'] ?? null;
+    
+            if ($iddetop && $numSecuencia && $idtalla && $cantidad && $sinicio && $sfin) {
+                $result = $this->actionModel->updateDetalle($iddetop, $numSecuencia, $idtalla, $cantidad, $sinicio, $sfin);
+    
+                header('Content-Type: application/json');
+                echo json_encode(['success' => $result]);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Datos incompletos']);
+            }
+        }
+    }
+    
 }

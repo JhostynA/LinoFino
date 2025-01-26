@@ -41,15 +41,7 @@ $clientes = (new ActionModel())->getClientesActivos();
         <div class="row mb-4">
             <div class="col-md-3">
                 <label for="estilo" class="form-label">Estilo:</label>
-                    <select class="form-select" class="form-control" id="estilo" name="estilo" required>
-                        <option value="">Seleccion un tipo de estilo</option>
-                        <option value="Casual">Casual</option>
-                        <option value="Clásico">Clásico</option>
-                        <option value="Romántico">Romántico</option>
-                        <option value="Vintage">Vintage</option>
-                        <option value="Deportivo">Deportivo</option>
-                        <option value="Minimalista">Minimalista</option>
-                    </select>
+                <input type="text" class="form-control" id="estilo" name="estilo" required>
             </div>
             <div class="col-md-3">
                 <label for="color" class="form-label">Color:</label>

@@ -12,9 +12,6 @@ class ActionModel {
         $this->db = $conexion->getConexion();
     }
 
-   
-
-
     public function createClient($razonsocial, $nombrecomercial, $telefono, $email, $direccion, $contacto) {
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM clientes WHERE razonsocial = :razonsocial");
         $stmt->bindParam(':razonsocial', $razonsocial);
@@ -134,9 +131,6 @@ class ActionModel {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_COLUMN); // Devuelve un array con los `idoperacion`
     }
-    
-    
-    
 
     public function getActions() {
         $stmt = $this->db->query("SELECT * FROM ordenesproduccion ORDER BY created_at DESC;");
@@ -227,8 +221,6 @@ class ActionModel {
         }
         return $producciones;
     }
-    
-    
     
     public function getSecuenciaById($id) {
         $stmt = $this->db->prepare("SELECT * FROM detalleop WHERE iddetop = ?");
@@ -322,9 +314,6 @@ class ActionModel {
             return false;
         }
     }
-    
-    
-    
 
     public function getLastInsertedSequenceId() {
         return $this->db->lastInsertId();
@@ -379,7 +368,38 @@ class ActionModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function updateOrdenProduccion($idop, $op, $estilo, $division, $color, $fechainicio, $fechafin) {
+        $sql = "UPDATE ordenesproduccion 
+                SET op = ?, estilo = ?, division = ?, color = ?, fechainicio = ?, fechafin = ? 
+                WHERE idop = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$op, $estilo, $division, $color, $fechainicio, $fechafin, $idop]);
+    }
 
+    public function updateDetalle($iddetop, $numSecuencia, $idtalla, $cantidad, $sinicio, $sfin) {
+        $query = "UPDATE detalleop SET numSecuencia = ?, idtalla = ?, cantidad = ?, sinicio = ?, sfin = ? WHERE iddetop = ?";
+        $stmt = $this->db->prepare($query);
+        return $stmt->execute([$numSecuencia, $idtalla, $cantidad, $sinicio, $sfin, $iddetop]);
+    }
 
+    public function getDetalleConPrendasRealizadas($idop) {
+        $query = "
+            SELECT d.*, 
+                   t.talla,
+                   COALESCE(MIN(p.cantidadproducida), 0) AS prendas_realizadas
+            FROM detalleop d
+            LEFT JOIN tallas t ON d.idtalla = t.idtalla
+            LEFT JOIN detalleop_operaciones doo ON d.iddetop = doo.iddetop
+            LEFT JOIN produccion p ON doo.id = p.iddetop_operacion
+            WHERE d.idop = ?
+            GROUP BY d.iddetop
+        ";
+    
+        $stmt = $this->db->prepare($query);
+        $stmt->execute([$idop]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+      
+    
 }
 

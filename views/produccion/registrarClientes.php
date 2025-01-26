@@ -55,7 +55,7 @@ $clientes = $clienteModel->getClientes();
             <th class="text-center" style="width: 200px;">Email</th>
             <th class="text-center" style="width: 250px;">Dirección</th>
             <th class="text-center" style="width: 150px;">Persona de Contacto</th>
-            <th class="text-center" style="width: 150px;">Fecha Creación</th>
+            <th class="text-center" style="width: 150px;">Fecha Agregado</th>
             <th class="text-center" style="width: 150px;">Estado</th>
             <th class="text-center" style="width: 100px;">Acciones</th>
         </tr>
@@ -219,6 +219,21 @@ $clientes = $clienteModel->getClientes();
 <script>
     document.querySelector("#guardarBtn").addEventListener("click", async (event) => {
         event.preventDefault(); 
+
+        const razonSocial = document.getElementById('razonsocial').value.trim();
+        const nombreComercial = document.getElementById('nombrecomercial').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+
+        if (!razonSocial || !nombreComercial || !telefono) {
+            Swal.fire({
+                title: 'Campos incompletos',
+                text: 'Debe completar mínimo los campos de Razón Social, Nombre Comercial y Teléfono.',
+                icon: 'warning',
+                confirmButtonText: 'Aceptar'
+            });
+            return; 
+        }
+
         const confirmacion = await Swal.fire({
             title: '¿Está seguro de registrar este cliente?',
             text: '¿Desea guardar los datos del cliente?',
@@ -247,6 +262,7 @@ $clientes = $clienteModel->getClientes();
         }
     });
 </script>
+
 
 <script>
     document.querySelector("#guardarBtn<?php echo $cliente['idcliente']; ?>").addEventListener("click", async (event) => {
