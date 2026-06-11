@@ -65,11 +65,7 @@
                         <th>Monto Pagado</th>
                     </tr>
                 </thead>
-                <tbody id="resultsTable">
-                    <tr>
-                        <td colspan="7" class="text-center text-muted">No hay resultados. Realiza una búsqueda.</td>
-                    </tr>
-                </tbody>
+                <tbody id="resultsTable"></tbody>
             </table>
         </div>
     </div>
@@ -93,16 +89,105 @@
                 $('#filterButton').prop('disabled', true);
                 $('#searchButton').prop('disabled', true);
 
+                // ✅ Inicializar DataTable UNA SOLA VEZ
+    const tabla = $('#paymentsTable').DataTable({
+        language: {
+            decimal:        "",
+            emptyTable:     "No hay datos disponibles",
+            info:           "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+            infoEmpty:      "Mostrando 0 a 0 de 0 entradas",
+            infoFiltered:   "(filtrado de _MAX_ entradas totales)",
+            lengthMenu:     "Mostrar _MENU_ entradas",
+            loadingRecords: "Cargando...",
+            processing:     "Procesando...",
+            search:         "Buscar:",
+            zeroRecords:    "No se encontraron resultados",
+            paginate: {
+                first:    "Primero",
+                last:     "Último",
+                next:     "Siguiente",
+                previous: "Anterior"
+            }
+        }
+    });
+
+
+                 // ✅ AGREGA AQUÍ DESDE ESTA LÍNEA
+                $('#fechaInicio, #fechaFin').on('change', function() {
+                    const inicio = $('#fechaInicio').val();
+                    const fin = $('#fechaFin').val();
+
+                    if (inicio && fin) {
+                        if (inicio > fin) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Fechas inválidas',
+                                text: 'La fecha de inicio no puede ser mayor a la fecha fin.',
+                            });
+                            $('#filterButton').prop('disabled', true);
+                        } else {
+                            $('#filterButton').prop('disabled', false);
+                        }
+                    } else {
+                        $('#filterButton').prop('disabled', true);
+                    }
+                });
+
+                $('#filterButton').on('click', function() {
+                    const fechaInicio = $('#fechaInicio').val();
+                    const fechaFin = $('#fechaFin').val();
+
+                    if (!fechaInicio || !fechaFin) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Fechas requeridas',
+                            text: 'Por favor selecciona ambas fechas.',
+                        });
+                        return;
+                    }
+
+                    $.ajax({
+                        url: '../../controllers/datos/daxtra.controller.php',
+                        method: 'GET',
+                        data: {
+                            fechaInicio: fechaInicio,
+                            fechaFin: fechaFin
+                        },
+                        success: function(response) {
+                            const resultados = JSON.parse(response);
+
+                            if (resultados.error) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: resultados.error,
+                                });
+                                return;
+                            }
+
+                            updateTable(resultados);
+                        },
+                        error: function() {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error de conexión',
+                                text: 'No se pudo conectar con el servidor.',
+                            });
+                        }
+                    });
+                });
+                // ✅ HASTA AQUÍ
+                
+
                 // Mostrar resultados a medida que el usuario escribe en el campo de búsqueda
+                // Sugerencias mientras escribe
                 $('#searchBox').on('input', function() {
                     const searchTerm = $(this).val();
                     if (searchTerm.length > 1) {
                         $.ajax({
                             url: '../../controllers/datos/daxtra.controller.php',
                             method: 'GET',
-                            data: {
-                                searchTerm
-                            },
+                            data: { searchTerm, action: 'sugerencias' }, // <-- agrega esto
                             success: function(response) {
                                 const resultados = JSON.parse(response);
                                 const resultsList = $('#searchResults');
@@ -113,10 +198,11 @@
                                 } else {
                                     resultados.forEach(resultado => {
                                         resultsList.append(`
-                                <li class="list-group-item list-group-item-action" data-trabajador="${resultado.trabajador}">
-                                    ${resultado.trabajador}
-                                </li>
-                            `);
+                                            <li class="list-group-item list-group-item-action" 
+                                                data-trabajador="${resultado.trabajador}">
+                                                ${resultado.trabajador}
+                                            </li>
+                                        `);
                                     });
                                 }
                             }
@@ -177,66 +263,28 @@
                     });
                 });
 
-                // Función para actualizar la tabla con los resultados
                 function updateTable(resultados) {
-    console.log("Datos recibidos del servidor:", resultados); // Verifica los datos recibidos
-
-    const tableBody = $('#resultsTable');
-    tableBody.empty(); // Limpiar la tabla antes de actualizar
-
-    if ($.fn.DataTable.isDataTable('#paymentsTable')) {
-        $('#paymentsTable').DataTable().clear().destroy(); // Destruir instancia anterior
-    }
+    tabla.clear();
 
     if (resultados.length === 0) {
-        tableBody.append('<tr><td colspan="7" class="text-center text-muted">No se encontraron resultados.</td></tr>');
-    } else {
-        resultados.forEach(resultado => {
-            const trabajador = resultado.trabajador || '-';
-            const ordenProduccion = resultado.orden_produccion || '-';
-            const secuencia = resultado.secuencia || '-';
-            const operacion = resultado.operacion || '-';
-            const modalidad = resultado.modalidad || '-';
-            const fechaPago = resultado.fecha_pago || '-';
-            const montoPagado = resultado.monto_pagado || '-';
-
-            tableBody.append(`
-                <tr>
-                    <td>${trabajador}</td>
-                    <td>${ordenProduccion}</td>
-                    <td>${secuencia}</td>
-                    <td>${operacion}</td>
-                    <td>${modalidad}</td>
-                    <td>${fechaPago}</td>
-                    <td>${montoPagado}</td>
-                </tr>
-            `);
-        });
+        tabla.draw();
+        return;
     }
 
-    // Re-activar DataTable con la configuración en español
-    $('#paymentsTable').DataTable({
-        language: {
-            "decimal": "",
-            "emptyTable": "No hay datos disponibles",
-            "info": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
-            "infoEmpty": "Mostrando 0 a 0 de 0 entradas",
-            "infoFiltered": "(filtrado de _MAX_ entradas totales)",
-            "lengthMenu": "Mostrar _MENU_ entradas",
-            "loadingRecords": "Cargando...",
-            "processing": "Procesando...",
-            "search": "Buscar:",
-            "zeroRecords": "No se encontraron resultados",
-            "paginate": {
-                "first": "Primero",
-                "last": "Último",
-                "next": "Siguiente",
-                "previous": "Anterior"
-            }
-        }
+    resultados.forEach(resultado => {
+        tabla.row.add([
+            resultado.trabajador       || '-',
+            resultado.orden_produccion || '-',
+            resultado.secuencia        || '-',
+            resultado.operacion        || '-',
+            resultado.fecha_pago       || '-',
+            resultado.modalidad        || '-',
+            resultado.monto_pagado     || '-'
+        ]);
     });
-}
 
+    tabla.draw();
+}
 
                 // Verificar si ambos campos de fecha están completos para habilitar el botón de búsqueda por fechas
                 $('#fechaInicio, #fechaFin').on('change', function() {
