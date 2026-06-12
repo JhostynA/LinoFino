@@ -61,9 +61,8 @@ class PagosController {
         return $this->pagosModel->getProduccionByPersona($idpersona);
     }
 
-    public function registrarPago($idModalidad, $idPersona, $fecha, $totalPago) {
-        return $this->pagosModel->registrarPago($idModalidad, $idPersona, $fecha, $totalPago);
-
+    public function registrarPago($idModalidad, $idPersona, $fecha, $totalPago, $idProduccion) {
+        return $this->pagosModel->registrarPago($idModalidad, $idPersona, $fecha, $totalPago, $idProduccion);
     }
 
     

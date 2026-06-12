@@ -83,6 +83,7 @@ $clientes = $pagosController->getClientesActivos();
             <div class="modal-body">
                 <form id="paymentForm">
                     <input type="hidden" id="idPersona" name="idpersona">
+                    <input type="hidden" id="idProduccion" name="idproduccion">
                     <div class="mb-3">
                         <label for="paymentMethod" class="form-label">Método de Pago</label>
                         <select class="form-select" id="paymentMethod" name="paymentMethod" required>
@@ -108,6 +109,8 @@ $clientes = $pagosController->getClientesActivos();
 
 
 
+
+
 <script>
     document.querySelector('table tbody').addEventListener('click', function (e) {
         if (e.target && e.target.matches('button.btn.btn-primary')) {
@@ -118,11 +121,13 @@ $clientes = $pagosController->getClientesActivos();
             const cantidad = row.querySelector('td:nth-child(4)').textContent;
             const totalPago = row.querySelector('td:nth-child(5)').textContent;
             const idPersona = row.getAttribute('data-idpersona'); 
+            const idProduccion = row.getAttribute('data-idproduccion');
             document.getElementById('paymentModalLabel').textContent = `Pago de ${operacion}`;
             document.getElementById('amountPaid').value = totalPago;
             document.getElementById('paymentMethod').value = "YAPE";  
             document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0]; 
             document.getElementById('idPersona').value = idPersona; 
+            document.getElementById('idProduccion').value = idProduccion;
 
             $('#paymentModal').modal('show');
         }
@@ -170,23 +175,6 @@ $clientes = $pagosController->getClientesActivos();
 
 
 
-document.querySelector('table tbody').addEventListener('click', function (e) {
-    if (e.target && e.target.matches('button.btn.btn-primary')) {
-        const row = e.target.closest('tr');
-        const idPersona = row.getAttribute('data-idpersona'); 
-
-        document.getElementById('idPersona').value = idPersona; 
-        const totalPago = row.querySelector('td:nth-child(5)').textContent;
-
-        document.getElementById('amountPaid').value = totalPago;
-        document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
-
-        $('#paymentModal').modal('show');
-    }
-});
-
-
-
 </script>
 
 <script>
@@ -218,6 +206,11 @@ function fetchOptions(url, bodyData, targetSelect, defaultOptionMessage, valueKe
     })
     .catch(error => console.error('Error:', error));
 }
+
+
+
+
+
 
 document.getElementById('selectCliente').addEventListener('change', function () {
     const idCliente = this.value;
@@ -266,6 +259,7 @@ document.getElementById('selectTrabajadores').addEventListener('change', functio
             data.forEach(item => {
     const row = document.createElement('tr');
     row.setAttribute('data-idpersona', item.idpersona); 
+     row.setAttribute('data-idproduccion', item.idproduccion);
     row.innerHTML = `
         <td>${item.fecha}</td>
         <td>${item.operacion}</td>

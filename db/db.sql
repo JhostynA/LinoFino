@@ -71,6 +71,8 @@ CREATE TABLE clientes
     fecha_creacion  DATE DEFAULT (CURRENT_TIMESTAMP),
     inactive_at 	DATETIME 		NULL
 );
+
+
 CREATE TABLE ordenesproduccion (
     idop 		INT AUTO_INCREMENT PRIMARY KEY,
     idcliente 	INT,
@@ -84,6 +86,7 @@ CREATE TABLE ordenesproduccion (
     FOREIGN KEY (idcliente) REFERENCES clientes(idcliente)
 );
 
+select * FROM  ordenesproduccion;
 
 CREATE TABLE tallas (
     idtalla INT AUTO_INCREMENT PRIMARY KEY,
@@ -173,7 +176,7 @@ BEGIN
 END $$
 DELIMITER $$
 
-CALL spu_colaboradores_registrar(1,'JhostynA','$2y$10$shfcJOApvH8mxR/vm4PupOQ9b5v9vGBXMQnfwDKeJhbOuvWurw/qi');
+CALL spu_colaboradores_registrar(1,'JhostynA','$2y$10$SW33A2HskEnuYNjsWIF8geL0MINqY2eoTBGU2vH/iu1Z/tLZuRB4W');
 
 DELIMITER $$
 CREATE PROCEDURE VerificarOperacion
@@ -244,12 +247,33 @@ CREATE TABLE pagos (
     FOREIGN KEY (idmodalidad) REFERENCES modalidades(idmodalidad),
     FOREIGN KEY (idpersona) REFERENCES personas(idpersona)
 );
+ALTER TABLE pagos ADD COLUMN idproduccion INT NULL;
+ALTER TABLE pagos ADD FOREIGN KEY (idproduccion) REFERENCES produccion(idproduccion);
+
+SELECT * FROM pagos;
+CALL listarPagosPorBusqueda('Flores Pachacutec Luis Alberto');
 
 
+
+
+-- 1. Para las sugerencias del buscador (nombres únicos)
 DELIMITER $$
-CREATE PROCEDURE listarPagosPorBusqueda(
-    IN searchTerm VARCHAR(100)
-)
+CREATE PROCEDURE buscarTrabajadores(IN searchTerm VARCHAR(100))
+BEGIN
+    SELECT DISTINCT
+        p.idpersona,
+        CONCAT(p.apellidos, ' ', p.nombres) AS trabajador
+    FROM personas p
+    WHERE CONCAT(p.apellidos, ' ', p.nombres) LIKE CONCAT('%', searchTerm, '%')
+    LIMIT 10;
+END$$
+DELIMITER ;
+
+
+-- 2. Para el historial completo al presionar Buscar
+DROP PROCEDURE IF EXISTS listarPagosPorBusqueda;
+DELIMITER $$
+CREATE PROCEDURE listarPagosPorBusqueda(IN searchTerm VARCHAR(100))
 BEGIN
     SELECT 
         CONCAT(p.apellidos, ' ', p.nombres) AS trabajador,
@@ -259,25 +283,24 @@ BEGIN
         pg.fecha AS fecha_pago,
         m.modalidad AS modalidad,
         IFNULL(pg.totalpago, 0) AS monto_pagado     
-    FROM personas p
-    LEFT JOIN pagos pg ON p.idpersona = pg.idpersona
-    LEFT JOIN produccion prod ON p.idpersona = prod.idpersona
-    LEFT JOIN detalleop_operaciones dopo ON prod.iddetop_operacion = dopo.id
-    LEFT JOIN detalleop dop ON dopo.iddetop = dop.iddetop
-    LEFT JOIN ordenesproduccion op ON dop.idop = op.idop
-    LEFT JOIN operaciones o ON dopo.idoperacion = o.idoperacion
+    FROM pagos pg
+    INNER JOIN personas p ON pg.idpersona = p.idpersona
+    INNER JOIN produccion prod ON pg.idproduccion = prod.idproduccion  -- ✅ JOIN directo
+    INNER JOIN detalleop_operaciones dopo ON prod.iddetop_operacion = dopo.id
+    INNER JOIN detalleop dop ON dopo.iddetop = dop.iddetop
+    INNER JOIN ordenesproduccion op ON dop.idop = op.idop
+    INNER JOIN operaciones o ON dopo.idoperacion = o.idoperacion
     LEFT JOIN modalidades m ON pg.idmodalidad = m.idmodalidad
-    WHERE 
-        CONCAT(p.apellidos, ' ', p.nombres) LIKE CONCAT('%', searchTerm, '%');
-END $$ 
+    WHERE CONCAT(p.apellidos, ' ', p.nombres) LIKE CONCAT('%', searchTerm, '%')
+    ORDER BY pg.fecha DESC;
+END$$
 DELIMITER ;
-
 
 
 DELIMITER $$
 CREATE PROCEDURE listarPagosPorFecha(
-    IN fechaInicio DATE,
-    IN fechaFin DATE
+    IN p_fechaInicio DATE,
+    IN p_fechaFin DATE
 )
 BEGIN
     SELECT 
@@ -296,8 +319,40 @@ BEGIN
     LEFT JOIN ordenesproduccion op ON dop.idop = op.idop
     LEFT JOIN operaciones o ON dopo.idoperacion = o.idoperacion
     LEFT JOIN modalidades m ON pg.idmodalidad = m.idmodalidad
-    WHERE pg.fecha BETWEEN fechaInicio AND fechaFin
+    WHERE pg.fecha BETWEEN p_fechaInicio AND p_fechaFin
     ORDER BY pg.fecha ASC;
-END $$
+END$$
 DELIMITER ;
+
+
+
+
+
+DELIMITER $$
+CREATE PROCEDURE ListarOrdenesPorProximidad()
+BEGIN
+    SELECT
+        op.idop,
+        op.op,
+        op.estilo,
+        op.division,
+        op.color,
+        op.fechainicio,
+        op.fechafin,
+         cl.nombrecomercial AS cliente,
+        DATEDIFF(op.fechafin, CURDATE()) AS dias_restantes,
+        CASE
+            WHEN DATEDIFF(op.fechafin, CURDATE()) < 0  THEN 'Vencida'
+            WHEN DATEDIFF(op.fechafin, CURDATE()) = 0  THEN 'Vence hoy'
+            WHEN DATEDIFF(op.fechafin, CURDATE()) <= 7  THEN 'Urgente'
+            WHEN DATEDIFF(op.fechafin, CURDATE()) <= 30 THEN 'Próxima'
+            ELSE 'En tiempo'
+        END AS estado
+    FROM ordenesproduccion op
+    INNER JOIN clientes cl ON op.idcliente = cl.idcliente
+    ORDER BY op.fechafin ASC;
+END$$
+
+DELIMITER ;
+
 
